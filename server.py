@@ -1,11 +1,12 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import os
-import requests
+from anthropic import Anthropic
 
 app = FastAPI()
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+client = Anthropic(api_key=ANTHROPIC_API_KEY)
 
 
 class Message(BaseModel):
@@ -19,9 +20,10 @@ def root():
 
 @app.post("/api/aurora")
 def aurora(msg: Message):
-    user_message = msg.message
+    try:
+        user_message = msg.message
 
-    prompt = f"""
+        prompt = f"""
 Eres Aurora, núcleo conversacional inicial de EXUVIA.
 
 Tu función:
@@ -35,29 +37,21 @@ Usuario dice:
 {user_message}
 """
 
-    response = requests.post(
-        "https://api.anthropic.com/v1/messages",
-        headers={
-            "x-api-key": ANTHROPIC_API_KEY,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json"
-        },
-        json={
-            "model": "claude-3-5-sonnet-latest",
-            "max_tokens": 300,
-            "messages": [
+        response = client.messages.create(
+            model="claude-3-5-sonnet-20241022",
+            max_tokens=300,
+            messages=[
                 {"role": "user", "content": prompt}
             ]
+        )
+
+        reply = response.content[0].text
+
+        return {
+            "response": reply
         }
-    )
 
-    data = response.json()
-
-    try:
-        reply = data["content"][0]["text"]
-    except Exception:
-        reply = "No pude responder ahora."
-
-    return {
-        "response": reply
-    } 
+    except Exception as e:
+        return {
+            "response": str(e)
+        }
