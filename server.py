@@ -16,7 +16,7 @@ class Message(BaseModel):
 
 @app.get("/")
 def root():
-    return {"status": "EXUVIA activo"}
+    return {"status": "EXUVIA NUEVO"}
 
 @app.get("/health")
 def health():
