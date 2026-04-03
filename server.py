@@ -56,3 +56,4 @@ def aurora(msg: Message):
         return {"response": f"ERROR parsing: {str(e)} | raw: {str(data)[:300]}"}
 
     return {"response": reply}
+# update
