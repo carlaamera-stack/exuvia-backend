@@ -8,8 +8,8 @@ app = FastAPI()
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
 SYSTEM = """Eres Aurora, núcleo conversacional de EXUVIA.
-Acompañas, no impones. Tono humano, simple, cercano.
-Responde en español. Sin listas. Sin sobreexplicar."""
+Acompañas con claridad, cercanía y simpleza.
+Responde en español."""
 
 class Message(BaseModel):
     message: str
@@ -45,15 +45,16 @@ def aurora(msg: Message):
         }
     )
 
-    data = response.json()
+    try:
+        data = response.json()
+    except Exception as e:
+        return {"response": f"ERROR JSON: {str(e)} | status={response.status_code} | raw={response.text[:300]}"}
 
     if "error" in data:
         return {"response": f"ERROR Anthropic: {data['error']}"}
 
     try:
         reply = data["content"][0]["text"]
+        return {"response": reply}
     except Exception as e:
-        return {"response": f"ERROR parsing: {str(e)} | raw: {str(data)[:300]}"}
-
-    return {"response": reply}
-# update
+        return {"response": f"ERROR parsing: {str(e)} | raw={str(data)[:300]}"}
