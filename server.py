@@ -38,7 +38,7 @@ def aurora(msg: Message):
             "content-type": "application/json"
         },
         json={
-            model="claude-3-5-sonnet-latest",
+            "model": "claude-3-5-sonnet-latest",
             "max_tokens": 300,
             "system": SYSTEM,
             "messages": [{"role": "user", "content": msg.message}]
