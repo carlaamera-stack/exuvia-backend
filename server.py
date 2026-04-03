@@ -45,3 +45,4 @@ def aurora(msg: Message):
     except Exception as e:
         logger.error(f"Anthropic error: {e}")
         return {"response": f"ERROR: {str(e)}"}
+# update
