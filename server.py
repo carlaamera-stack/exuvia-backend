@@ -1,34 +1,7 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
-import os
-import requests
-
-app = FastAPI()
-
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-
-SYSTEM = """Eres Aurora, núcleo conversacional de EXUVIA.
-Acompañas con claridad, cercanía y simpleza.
-Responde en español."""
-
-class Message(BaseModel):
-    message: str
-
-@app.get("/")
-def root():
-    return {"status": "EXUVIA NUEVO"}
-
-@app.get("/health")
-def health():
-    return {
-        "api_key_set": bool(ANTHROPIC_API_KEY),
-        "api_key_preview": ANTHROPIC_API_KEY[:12] + "..." if ANTHROPIC_API_KEY else "NO CONFIGURADA"
-    }
-
-@app.post("/api/aurora")
-def aurora(msg: Message):
+@app.get("/test-claude")
+def test_claude():
     if not ANTHROPIC_API_KEY:
-        return {"response": "ERROR: ANTHROPIC_API_KEY no configurada en Railway"}
+        return {"response": "ERROR: ANTHROPIC_API_KEY no configurada"}
 
     response = requests.post(
         "https://api.anthropic.com/v1/messages",
@@ -39,22 +12,19 @@ def aurora(msg: Message):
         },
         json={
             "model": "claude-3-5-sonnet-latest",
-            "max_tokens": 300,
-            "system": SYSTEM,
-            "messages": [{"role": "user", "content": msg.message}]
-        }
+            "max_tokens": 100,
+            "messages": [
+                {"role": "user", "content": "Hola. Responde solo: conexión exitosa."}
+            ]
+        },
+        timeout=30
     )
 
     try:
-        data = response.json()
+        return response.json()
     except Exception as e:
-        return {"response": f"ERROR JSON: {str(e)} | status={response.status_code} | raw={response.text[:300]}"}
-
-    if "error" in data:
-        return {"response": f"ERROR Anthropic: {data['error']}"}
-
-    try:
-        reply = data["content"][0]["text"]
-        return {"response": reply}
-    except Exception as e:
-        return {"response": f"ERROR parsing: {str(e)} | raw={str(data)[:300]}"}
+        return {
+            "response": f"ERROR JSON: {str(e)}",
+            "status_code": response.status_code,
+            "raw": response.text[:500]
+        }
